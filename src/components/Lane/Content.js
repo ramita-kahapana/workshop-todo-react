@@ -1,13 +1,13 @@
 import React from "react";
 import ListItem from "./ListItem";
 
-function Content({ title, list, type }) {
+function Content({ title, list }) {
   return (
     <div className="lane-content">
       <div className="lane-title">{title}</div>
       <ul className="list-container">
-        {list.map((item, index) => (
-          <ListItem key={item.id} index={index} type={type}>
+        {list.map((item) => (
+          <ListItem key={item.id} id={item.id} type={item.type}>
             {item.content}
           </ListItem>
         ))}
