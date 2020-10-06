@@ -52,7 +52,7 @@ export function useTodo() {
   useEffect(() => {
     if (!todos.length)
       setTodos(JSON.parse(window.localStorage.getItem(Constants.store)) || []);
-  }, [setTodos, todos])
+  }, [setTodos, todos.length])
 
   useEffect(() => {
     if (todos.length)
