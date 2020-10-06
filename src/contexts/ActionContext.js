@@ -1,10 +1,31 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useReducer, useMemo } from "react";
 
 const ActionContext = createContext({});
+const INITAIL_STATE = [];
+function reducer(state, action) {
+  switch (action.type) {
+    case "INIT":
+      return action.payload || [];
+    case "ADD":
+      return [...state, { id: Date.now(), content: action.payload, type: Constants.types.todo },];
+    case "TODO":
+    case "DOING":
+    case "DONE": {
+      const cloneTodods = [...state];
+      const itemIndex = cloneTodods.findIndex((todo) => todo.id === action.payload);
+      if (cloneTodods[itemIndex])
+        cloneTodods[itemIndex].type = Constants.types[action.type.toLowerCase()];
+      return cloneTodods
+    }
+    default:
+      return state;
+  }
+}
+
 export function Provider({ children }) {
-  const [todos, setTodos] = useState([]);
+  const [todos, dispatch] = useReducer(reducer, INITAIL_STATE)
   return (
-    <ActionContext.Provider value={{ todos, setTodos }}>
+    <ActionContext.Provider value={{ todos, dispatch }}>
       {children}
     </ActionContext.Provider>
   );
@@ -18,51 +39,28 @@ const Constants = {
   }
 }
 export function useTodo() {
-  const { todos, setTodos } = useContext(ActionContext);
-  console.log(todos)
-  const handleAddTodo = useCallback((todoInput) =>
-    setTodos([...todos, { id: Date.now(), content: todoInput, type: Constants.types.todo }]), [setTodos, todos]);
+  const { todos, setTodos, dispatch } = useContext(ActionContext);
+  const handleAddTodo = useCallback((todoInput) => dispatch({ type: "ADD", payload: todoInput }), [dispatch]);
+  const handleTodoClick = useCallback((itemId) => dispatch({ type: "TODO", payload: itemId }), [dispatch])
+  const handleDoClick = useCallback((itemId) => dispatch({ type: "DOING", payload: itemId }), [dispatch])
+  const handleDoneClick = useCallback((itemId) => dispatch({ type: "DONE", payload: itemId }), [dispatch])
 
-  const handleTodoClick = useCallback((itemId) => {
-    const cloneTodods = [...todos]; //clone with reference changed
-    const itemIndex = cloneTodods.findIndex((todo) => todo.id === itemId);
-    if (cloneTodods[itemIndex]) {
-      cloneTodods[itemIndex].type = Constants.types.todo;
-    }
-    setTodos(cloneTodods);
-  }, [todos, setTodos]);
-
-  const handleDoClick = useCallback((itemId) => {
-    const cloneTodods = [...todos]; //clone with reference changed
-    const itemIndex = cloneTodods.findIndex((todo) => todo.id === itemId);
-    if (cloneTodods[itemIndex]) {
-      cloneTodods[itemIndex].type = Constants.types.doing;
-    }
-    setTodos(cloneTodods);
-  }, [todos, setTodos]);
-
-  const handleDoneClick = useCallback((itemId) => {
-    const cloneTodods = [...todos]; //clone with reference changed
-    const itemIndex = cloneTodods.findIndex((todo) => todo.id === itemId);
-    if (cloneTodods[itemIndex]) {
-      cloneTodods[itemIndex].type = Constants.types.done;
-    }
-    setTodos(cloneTodods);
-  }, [todos, setTodos]);
   useEffect(() => {
     if (!todos.length)
-      setTodos(JSON.parse(window.localStorage.getItem(Constants.store)) || []);
-  }, [setTodos, todos.length])
+      dispatch({
+        type: "INIT", payload: JSON.parse(window.localStorage.getItem(Constants.store)),
+      });
+  }, [dispatch, todos.length]);
 
   useEffect(() => {
     if (todos.length)
       window.localStorage.setItem(Constants.store, JSON.stringify(todos));
-  }, [setTodos, todos]);
+  }, [todos]);
 
   const state = useMemo(() => ({
-    todos: todos.filter((todo) => todo.type === "todo"),
-    doings: todos.filter((todo) => todo.type === "doing"),
-    dones: todos.filter((todo) => todo.type === "done")
+    todos: todos.filter((todo) => todo.type === Constants.types.todo),
+    doings: todos.filter((todo) => todo.type === Constants.types.doing),
+    dones: todos.filter((todo) => todo.type === Constants.types.done)
   }), [todos])
 
   const dispatcher = useMemo(
