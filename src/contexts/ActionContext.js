@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 const ActionContext = createContext({});
 export function Provider({ children }) {
@@ -9,51 +9,72 @@ export function Provider({ children }) {
     </ActionContext.Provider>
   );
 }
+const Constants = {
+  store: 'todos',
+  types: {
+    todo: 'todo',
+    doing: 'doing',
+    done: 'done'
+  }
+}
 export function useTodo() {
   const { todos, setTodos } = useContext(ActionContext);
-  const handleAddTodo = (todoInput) =>
-    setTodos([...todos, { id: Date.now(), content: todoInput, type: "todo" }]);
+  console.log(todos)
+  const handleAddTodo = useCallback((todoInput) =>
+    setTodos([...todos, { id: Date.now(), content: todoInput, type: Constants.types.todo }]), [setTodos, todos]);
 
-  const handleTodoClick = (itemId) => {
+  const handleTodoClick = useCallback((itemId) => {
     const cloneTodods = [...todos]; //clone with reference changed
     const itemIndex = cloneTodods.findIndex((todo) => todo.id === itemId);
     if (cloneTodods[itemIndex]) {
-      cloneTodods[itemIndex].type = "todo";
+      cloneTodods[itemIndex].type = Constants.types.todo;
     }
     setTodos(cloneTodods);
-  };
+  }, [todos, setTodos]);
 
-  const handleDoClick = (itemId) => {
+  const handleDoClick = useCallback((itemId) => {
     const cloneTodods = [...todos]; //clone with reference changed
     const itemIndex = cloneTodods.findIndex((todo) => todo.id === itemId);
     if (cloneTodods[itemIndex]) {
-      cloneTodods[itemIndex].type = "doing";
+      cloneTodods[itemIndex].type = Constants.types.doing;
     }
     setTodos(cloneTodods);
-  };
+  }, [todos, setTodos]);
 
-  const handleDoneClick = (itemId) => {
+  const handleDoneClick = useCallback((itemId) => {
     const cloneTodods = [...todos]; //clone with reference changed
     const itemIndex = cloneTodods.findIndex((todo) => todo.id === itemId);
     if (cloneTodods[itemIndex]) {
-      cloneTodods[itemIndex].type = "done";
+      cloneTodods[itemIndex].type = Constants.types.done;
     }
     setTodos(cloneTodods);
-  };
-
+  }, [todos, setTodos]);
   useEffect(() => {
     if (!todos.length)
-      setTodos(JSON.parse(window.localStorage.getItem("todos")) || []);
+      setTodos(JSON.parse(window.localStorage.getItem(Constants.store)) || []);
+  }, [setTodos, todos])
+
+  useEffect(() => {
     if (todos.length)
-      window.localStorage.setItem("todos", JSON.stringify(todos));
+      window.localStorage.setItem(Constants.store, JSON.stringify(todos));
   }, [setTodos, todos]);
-  return [
-    {
-      todos: todos.filter((todo) => todo.type === "todo"),
-      doings: todos.filter((todo) => todo.type === "doing"),
-      dones: todos.filter((todo) => todo.type === "done")
-    },
-    { handleAddTodo, handleTodoClick, handleDoClick, handleDoneClick }
-  ];
+
+  const state = useMemo(() => ({
+    todos: todos.filter((todo) => todo.type === "todo"),
+    doings: todos.filter((todo) => todo.type === "doing"),
+    dones: todos.filter((todo) => todo.type === "done")
+  }), [todos])
+
+  const dispatcher = useMemo(
+    () => ({
+      handleAddTodo,
+      handleTodoClick,
+      handleDoClick,
+      handleDoneClick,
+    }),
+    [handleAddTodo, handleDoClick, handleDoneClick, handleTodoClick]
+  );
+
+  return [state, dispatcher];
 }
 export default ActionContext;
