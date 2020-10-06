@@ -1,23 +1,23 @@
-import React, { useContext } from "react";
-import ActionContext from "../../contexts/ActionContext";
+import React from "react";
+import { useTodo } from "../../contexts/ActionContext";
 
 function ListItem({ children, id, type }) {
-  const { onDoClick, onDoneClick, onTodoClick } = useContext(ActionContext);
+  const [, { handleDoClick,  handleDoneClick, handleTodoClick }] = useTodo();
   return (
     <li className="list-item">
       <span className="list-content">{children}</span>
       {type !== "todo" && (
-        <button className="btn" onClick={() => onTodoClick(id)}>
+        <button className="btn" onClick={() => handleTodoClick(id)}>
           Todo
         </button>
       )}
       {type !== "doing" && (
-        <button className="btn" onClick={() => onDoClick(id)}>
+        <button className="btn" onClick={() => handleDoClick(id)}>
           Do
         </button>
       )}
       {type !== "done" && (
-        <button className="btn" onClick={() => onDoneClick(id)}>
+        <button className="btn" onClick={() => handleDoneClick(id)}>
           Done
         </button>
       )}
