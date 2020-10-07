@@ -1,0 +1,10 @@
+@import "base/variables";
+@import "base/typography"; //มาจากโฟรเดอร์เดียวกันสามารถเขียนชิดบรรทัดได้
+
+@import "abstract/reset";
+
+@import "layout/forms";
+
+@import "components/title";
+@import "components/lane";
+@import "components/button";

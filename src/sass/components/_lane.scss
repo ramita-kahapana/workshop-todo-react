@@ -1,0 +1,34 @@
+.lane-container {
+    display: flex;
+    flex-direction: row;
+
+    .lane-title {
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .lane-content {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 1rem;
+
+        ul.list-container {
+            list-style: none;
+            width: 100%;
+
+            li.list-item {
+                padding: 1rem;
+                display: flex;
+                align-items: center;
+                border: 1px solid #eead00;
+
+                .list-content {
+                    flex: 1;
+                }
+            }
+        }
+    }
+}
